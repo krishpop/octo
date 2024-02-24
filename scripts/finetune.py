@@ -14,7 +14,8 @@ import tensorflow as tf
 import tqdm
 import wandb
 
-from octo.data.dataset import make_single_dataset
+from octo.data.oxe import make_oxe_dataset_kwargs_and_weights
+from octo.data.dataset import make_single_dataset, make_interleaved_dataset
 from octo.model.octo_model import OctoModel
 from octo.utils.jax_utils import initialize_compilation_cache
 from octo.utils.spec import ModuleSpec
@@ -173,12 +174,15 @@ def main(_):
         del FLAGS.config["dataset_kwargs"]["standardize_fn"]
         FLAGS.config["dataset_kwargs"]["standardize_fn"] = standardize_fn
 
-    dataset = make_single_dataset(
-        FLAGS.config.dataset_kwargs,
-        traj_transform_kwargs=FLAGS.config.traj_transform_kwargs,
-        frame_transform_kwargs=FLAGS.config.frame_transform_kwargs,
-        train=True,
-    )
+    dataset_kwargs_list, sample_weights = make_oxe_dataset_kwargs_and_weights(
+                    "instilled", FLAGS.config["dataset_kwargs"]["data_dir"], load_camera_views=("primary",)
+                        )
+    for k in filter(lambda x: x in FLAGS.config.dataset_kwargs, sum(list(map(lambda x: list(x.keys()), dataset_kwargs_list)), list())):
+        del FLAGS.config.dataset_kwargs[k]
+    dataset = make_interleaved_dataset(
+            dataset_kwargs_list=dataset_kwargs_list,
+            train=True,
+            **FLAGS.config.dataset_kwargs)
     train_data_iter = (
         dataset.repeat()
         .unbatch()
@@ -420,6 +424,24 @@ def main(_):
         if (i + 1) % FLAGS.config.save_interval == 0 and save_dir is not None:
             logging.info("Saving checkpoint...")
             save_callback(train_state, i + 1)
+
+	# Skip the training loop and run only the evaluation
+    logging.info("Skipping training and running evaluation...")
+
+    # Perform evaluation at the beginning
+    with timer("val"):
+        val_metrics = val_callback(train_state, 0)
+        wandb_log(val_metrics, step=0)
+
+    with timer("visualize"):
+        viz_metrics = viz_callback(train_state, 0)
+        wandb_log(viz_metrics, step=0)
+
+    if rollout_callback is not None:
+        with timer("rollout"):
+            rollout_metrics = rollout_callback(train_state, 0)
+            wandb_log(rollout_metrics, step=0)
+
 
 
 if __name__ == "__main__":

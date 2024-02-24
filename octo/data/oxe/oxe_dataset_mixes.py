@@ -128,9 +128,49 @@ OXE_FULL_MIX = [
     ("berkeley_gnm_sac_son", 1.0),
 ]
 
+
+instilled = [
+    'fractal20220817_data',
+    'bridge',
+    'taco_play',
+    'jaco_play',
+    'nyu_door_opening_surprising_effectiveness',
+    'viola',
+    'berkeley_autolab_ur5', 
+    'nyu_rot_dataset_converted_externally_to_rlds',
+    'stanford_hydra_dataset_converted_externally_to_rlds',
+    'cmu_franka_exploration_dataset_converted_externally_to_rlds',
+    'ucsd_kitchen_dataset_converted_externally_to_rlds',
+    #'bc_z', # throws an error
+    'kaist_nonprehensile_converted_externally_to_rlds',
+    'dlr_edan_shared_control_converted_externally_to_rlds', 
+    'asu_table_top_converted_externally_to_rlds',
+    'berkeley_fanuc_manipulation',
+    'columbia_cairlab_pusht_real',
+    'utokyo_pr2_opening_fridge_converted_externally_to_rlds',
+    'austin_buds_dataset_converted_externally_to_rlds', # constant annotation, but valid control mode and tiny so adds diversity
+    'utokyo_pr2_opening_fridge_converted_externally_to_rlds',
+    'utokyo_pr2_tabletop_manipulation_converted_externally_to_rlds',
+    'utokyo_xarm_pick_and_place_converted_externally_to_rlds', # constant annotation, but valid control mode and tiny so adds diversity
+    'maniskill_dataset_converted_externally_to_rlds', # annotated, but would benefit from more explicit annotation. Quite large and simulated, should be downsampled
+    'language_table', # super minimal actions, but annotated and valid control mode (eef position)
+    'imperialcollege_sawyer_wrist_cam', # wrist cam only
+    'iamlab_cmu_pickup_insert_converted_externally_to_rlds',
+    'utaustin_mutex', # weirdly phrased annotations occasionally, but otherwise good
+    'cmu_play_fusion', # not everything seen on cam
+    'cmu_stretch'
+]
+
+INSTILLED_MIX = [(k, v) for k, v in OXE_MAGIC_SOUP if k in instilled]
+TEST_MIX = [("taco_play", 1), ('fractal20220817_data', 1)]
+JUST_KUKA = [("maniskill_dataset_converted_externally_to_rlds", 1.0)]
+
 OXE_NAMED_MIXES = {
     "bridge": BRIDGE_MIX,
+    "instilled": INSTILLED_MIX,
     "rtx": RT_X_MIX,
     "rtx_franka": RT_X_MIX + OXE_FRANKA_MIX,
     "oxe_magic_soup": OXE_MAGIC_SOUP,
+    "test": TEST_MIX,
+    "just_kuka": JUST_KUKA
 }
